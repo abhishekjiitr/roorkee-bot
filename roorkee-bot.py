@@ -285,3 +285,5 @@ elif len(answers) == 1:
     print("Answer:\n" + answer_list[answers[0]])
 else:
     print("No suitable answer found")
+
+print("")
