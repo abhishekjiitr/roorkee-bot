@@ -129,51 +129,51 @@ training_set=feature_set[:3500]
 test_set=feature_set[3500:]
 
 if not os.path.exists("voted_classifier.p"):
-    # classifier=nltk.NaiveBayesClassifier.train(training_set)
-    #classifier.show_most_informative_features(10)
+	# classifier=nltk.NaiveBayesClassifier.train(training_set)
+	#classifier.show_most_informative_features(10)
 
-    #print("NaiveBayesClassifier Accuracy:",nltk.classify.accuracy(classifier,test_set))
+	#print("NaiveBayesClassifier Accuracy:",nltk.classify.accuracy(classifier,test_set))
 
-    MClassifier=SklearnClassifier(MultinomialNB())
-    MClassifier.train(training_set)
+	MClassifier=SklearnClassifier(MultinomialNB())
+	MClassifier.train(training_set)
 
-    # print("MultinomialNB Accuracy:",nltk.classify.accuracy(MClassifier,test_set))
-
-
-    # BClassifier=SklearnClassifier(BernoulliNB())
-    # BClassifier.train(training_set)
-
-    # print("BernoulliNB Accuracy:",nltk.classify.accuracy(BClassifier,test_set))
+	# print("MultinomialNB Accuracy:",nltk.classify.accuracy(MClassifier,test_set))
 
 
-    LogisticRegressionClassifier=SklearnClassifier(LogisticRegression())
-    LogisticRegressionClassifier.train(training_set)
+	# BClassifier=SklearnClassifier(BernoulliNB())
+	# BClassifier.train(training_set)
 
-    # print("LogisticRegression Accuracy:",nltk.classify.accuracy(LogisticRegressionClassifier,test_set))
+	# print("BernoulliNB Accuracy:",nltk.classify.accuracy(BClassifier,test_set))
 
-    SGDClassifier=SklearnClassifier(SGDClassifier())
-    SGDClassifier.train(training_set)
 
-    # print("SGDClassifier Accuracy:",nltk.classify.accuracy(SGDClassifier,test_set))
+	LogisticRegressionClassifier=SklearnClassifier(LogisticRegression())
+	LogisticRegressionClassifier.train(training_set)
 
-    # SVCClassifier=SklearnClassifier(SVC())
-    # SVCClassifier.train(training_set)
+	# print("LogisticRegression Accuracy:",nltk.classify.accuracy(LogisticRegressionClassifier,test_set))
 
-    # print("SVC Accuracy:",nltk.classify.accuracy(SVCClassifier,test_set))
+	SGDClassifier=SklearnClassifier(SGDClassifier())
+	SGDClassifier.train(training_set)
 
-    LinearSVCClassifier=SklearnClassifier(LinearSVC())
-    LinearSVCClassifier.train(training_set)
+	# print("SGDClassifier Accuracy:",nltk.classify.accuracy(SGDClassifier,test_set))
 
-    # print("LinearSVC Accuracy:",nltk.classify.accuracy(LinearSVCClassifier,test_set))
+	# SVCClassifier=SklearnClassifier(SVC())
+	# SVCClassifier.train(training_set)
 
-    voted_classifier=VoteClassifier(MClassifier,SGDClassifier,LogisticRegressionClassifier,LinearSVCClassifier);
+	# print("SVC Accuracy:",nltk.classify.accuracy(SVCClassifier,test_set))
 
-    #print(voted_classifier.classify(test_set[0][0]))
+	LinearSVCClassifier=SklearnClassifier(LinearSVC())
+	LinearSVCClassifier.train(training_set)
 
-    # print("voted_classifier Accuracy:",nltk.classify.accuracy(voted_classifier,test_set))
-    pickle.dump( voted_classifier, open( "voted_classifier.p", "wb" ) )
+	# print("LinearSVC Accuracy:",nltk.classify.accuracy(LinearSVCClassifier,test_set))
+
+	voted_classifier=VoteClassifier(MClassifier,SGDClassifier,LogisticRegressionClassifier,LinearSVCClassifier);
+
+	#print(voted_classifier.classify(test_set[0][0]))
+
+	print("voted_classifier Accuracy:",nltk.classify.accuracy(voted_classifier,test_set))
+	pickle.dump( voted_classifier, open( "voted_classifier.p", "wb" ) )
 else:
-    voted_classifier = pickle.load( open( "voted_classifier.p", "rb" ) )
+	voted_classifier = pickle.load( open( "voted_classifier.p", "rb" ) )
 
 
 
@@ -202,6 +202,7 @@ for key in dictionary:
 
 # que="What is SDS labs?"
 print("Ask your query:")
+# que = "how to change your branch"
 que = raw_input()
 
 def sent2vec(que):
@@ -213,6 +214,8 @@ def sent2vec(que):
 	for w in que:
 		if(dictionary[w]>0):
 			fq[d_index[w]]=1
+			if not check(w):
+				fq[d_index[w]] *= 1.5
 	temp=process(temp)
 	#print(temp)
 	temp=feature(temp)
@@ -233,6 +236,11 @@ def sent2vec(que):
 		fq[g_index+5]=1
 	return fq
 
+def dot(v1, v2):
+	v1, v2 = map(np.array, (v1, v2) )
+	res = v1 * v2
+	val = sum(res)
+	return val
 
 def getAnswer(q, data):
 	maxi = -1
@@ -241,8 +249,7 @@ def getAnswer(q, data):
 	for i in range(len(data)):
 	   d = data[i]
 	   b = np.array(d)
-	   res = a * b
-	   val = sum(res)
+	   val = dot(b, a)
 	   if val == maxi:
 			answers.append(i)
 	   elif val > maxi:
@@ -276,14 +283,24 @@ with open('ans.txt','r') as f:
 answer_list = [ans.strip() for ans in answer_list]
 # print(answers)
 if len(answers) > 1:
-    print("Possible Answers: \n")
-    for i in range(len(answers)):
-    	text = "Answer " + str(i+1) + ": "
-    	text += answer_list[answers[i]]+"\n"
-    	print(text)
+	print("Possible Answers: \n")
+	ans_vectors = [(dot(sent2vec(answer_list[index]), qvector), index) for index in answers]
+	ans_vectors.sort( key = lambda x : x[0], reverse = True)
+
+	# print(ans_vectors)
+	final_answers = (map(lambda x : answer_list[ x[1] ], ans_vectors))
+	# for i in range(len(answers)):
+	# 	text = "Answer " + str(i+1) + ": "
+	# 	text += answer_list[answers[i]]+"\n"
+	# 	print(text)
+	# print(final_answers)
+	for i in range(len(final_answers)):
+		text = "Answer " + str(i+1) + ": "
+		text += final_answers[i]+"\n"
+		print(text)
 elif len(answers) == 1:
-    print("Answer:\n" + answer_list[answers[0]])
+	print("Answer:\n" + answer_list[answers[0]])
 else:
-    print("No suitable answer found")
+	print("No suitable answer found")
 
 print("")
