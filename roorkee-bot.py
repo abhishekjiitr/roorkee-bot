@@ -200,11 +200,6 @@ for key in dictionary:
 	revDic[g_index] = key
 	g_index += 1
 
-# que="What is SDS labs?"
-print("Ask your query:")
-# que = "how to change your branch"
-que = raw_input()
-
 def sent2vec(que):
 	temp=que
 	que=getFocusWords(que)
@@ -242,7 +237,7 @@ def dot(v1, v2):
 	val = sum(res)
 	return val
 
-def getAnswer(q, data):
+def getAnswerIndex(q, data):
 	maxi = -1
 	answers = []
 	a = np.array(q)
@@ -260,8 +255,6 @@ def getAnswer(q, data):
 	return answers if maxi > 1 else []
 
 
-qvector = sent2vec(que)
-
 #print("$$$$$$$$$")
 if not os.path.exists("sentence_vectors.p"):
 	data = []
@@ -274,33 +267,38 @@ if not os.path.exists("sentence_vectors.p"):
 else:
 	data = pickle.load( open( "sentence_vectors.p", "rb" ) )
 
-
-answers = getAnswer(qvector, data)
-# print(answers)
-#print(data[107])
 with open('ans.txt','r') as f:
 	answer_list = f.readlines()
 answer_list = [ans.strip() for ans in answer_list]
 # print(answers)
-if len(answers) > 1:
-	print("Possible Answers: \n")
-	ans_vectors = [(dot(sent2vec(answer_list[index]), qvector), index) for index in answers]
-	ans_vectors.sort( key = lambda x : x[0], reverse = True)
 
-	# print(ans_vectors)
-	final_answers = (map(lambda x : answer_list[ x[1] ], ans_vectors))
-	# for i in range(len(answers)):
-	# 	text = "Answer " + str(i+1) + ": "
-	# 	text += answer_list[answers[i]]+"\n"
-	# 	print(text)
-	# print(final_answers)
-	for i in range(len(final_answers)):
-		text = "Answer " + str(i+1) + ": "
-		text += final_answers[i]+"\n"
-		print(text)
-elif len(answers) == 1:
-	print("Answer:\n" + answer_list[answers[0]])
-else:
-	print("No suitable answer found")
+print("Ask your query:")
+# que = "how to change your branch?"
+que = raw_input()
 
+def getAnswer(question):
+	qvector = sent2vec(question)
+	answers = getAnswerIndex(qvector, data)
+	if len(answers) > 1:
+		print("Possible Answers: \n")
+		ans_vectors = [(dot(sent2vec(answer_list[index]), qvector), index) for index in answers]
+		ans_vectors.sort( key = lambda x : x[0], reverse = True)
+
+		# print(ans_vectors)
+		final_answers = (map(lambda x : answer_list[ x[1] ], ans_vectors))
+		# for i in range(len(answers)):
+		# 	text = "Answer " + str(i+1) + ": "
+		# 	text += answer_list[answers[i]]+"\n"
+		# 	print(text)
+		# print(final_answers)
+		for i in range(len(final_answers)):
+			text = "Answer " + str(i+1) + ": "
+			text += final_answers[i]+"\n"
+			print(text)
+	elif len(answers) == 1:
+		print("Answer:\n" + answer_list[answers[0]])
+	else:
+		print("No suitable answer found")
+
+getAnswer(que)
 print("")
