@@ -175,39 +175,44 @@ if not os.path.exists("voted_classifier.p"):
 else:
 	voted_classifier = pickle.load( open( "voted_classifier.p", "rb" ) )
 
-
-
-f=open('database.txt','r')
-test=f.readlines()
-f.close()
-dictionary=[]
-for q in test:
-	q1=q.lower()
+def processQuestion(que):
+	q1=que.lower()
 	w=word_tokenize(q1)
 	l=[]
 	for word in w:
 		if word not in stop_words and  word != '?':
 			l.append(word.lower())
+	return l
+
+with open('database.txt','r') as f:
+	test=f.readlines()
+dictionary=[]
+
+for q in test:
+	l = processQuestion(q)
 	dictionary=dictionary+l
 
-dictionary=nltk.FreqDist(dictionary)
+# dictionary2=nltk.FreqDist(dictionary)
 
 d_index = {}
 revDic = {}
-g_index = 0
+g_index = 6
 for key in dictionary:
-	d_index[key] = g_index
-	revDic[g_index] = key
-	g_index += 1
+	if key not in d_index:
+		#print(key)
+		d_index[key] = g_index
+		revDic[g_index] = key
+		g_index += 1
+
 
 def sent2vec(que):
 	temp=que
 	que=getFocusWords(que)
 	#print(que)
 	
-	fq=[0]*(g_index+6)
+	fq=[0]*(g_index)
 	for w in que:
-		if(dictionary[w]>0):
+		if(w in d_index):
 			fq[d_index[w]]=1
 			if not check(w):
 				fq[d_index[w]] *= 1.5
@@ -218,17 +223,17 @@ def sent2vec(que):
 	typ=voted_classifier.classify(temp)
 	#print(typ)
 	if(typ=="ABBR"):
-		fq[g_index]=1
+		fq[0]=1
 	elif(typ=="ENTY"):
-		fq[g_index+1]=1
+		fq[1]=1
 	elif(typ=="HUM"):
-		fq[g_index+2]=1
+		fq[2]=1
 	elif(typ=="NUM"):
-		fq[g_index+3]=1
+		fq[3]=1
 	elif(typ=="DESC"):
-		fq[g_index+4]=1
+		fq[4]=1
 	elif(typ=="LOC"):
-		fq[g_index+5]=1
+		fq[5]=1
 	return fq
 
 def dot(v1, v2):
@@ -240,11 +245,11 @@ def dot(v1, v2):
 def getAnswerIndex(q, data):
 	maxi = -1
 	answers = []
-	a = np.array(q)
+	q = np.array(q)
 	for i in range(len(data)):
 	   d = data[i]
-	   b = np.array(d)
-	   val = dot(b, a)
+	   d = np.array(d)
+	   val = dot(q, d)
 	   if val == maxi:
 			answers.append(i)
 	   elif val > maxi:
@@ -256,27 +261,75 @@ def getAnswerIndex(q, data):
 
 
 #print("$$$$$$$$$")
-if not os.path.exists("sentence_vectors.p"):
-	data = []
-	for i in range(len(test)):
-		q = test[i]
-		data.append(sent2vec(q))
-		print(i)
 
-	pickle.dump( data, open( "sentence_vectors.p", "wb" ) )
-else:
-	data = pickle.load( open( "sentence_vectors.p", "rb" ) )
-
-with open('ans.txt','r') as f:
-	answer_list = f.readlines()
-answer_list = [ans.strip() for ans in answer_list]
 # print(answers)
 
 print("Ask your query:")
-# que = "how to change your branch?"
-que = raw_input()
+que = "Who is the director of IIT Roorkee"
+# que = raw_input()
+
+data = []
+
+def loadQuestionVectors():
+	global data, test
+	if not os.path.exists("sentence_vectors.p"):
+		data = []
+		test = [q.strip().replace('?', '') for q in test]
+
+		for i in range(len(test)):
+			q = test[i]
+			temp=sent2vec(q)
+			data.append(temp)
+			print(i)
+			print(len(temp))
+
+		pickle.dump( data, open( "sentence_vectors.p", "wb" ) )
+	else:
+		data = pickle.load( open( "sentence_vectors.p", "rb" ) )
+
+def addQuestion(que, ans):
+	que = que.lower()
+	loadQuestionVectors()
+	global data
+	global d_index
+	global g_index
+	global revDic
+	# global data
+	
+	new_word_count = 0
+	word_set = set(processQuestion(que))
+	print(word_set)
+	for word in word_set:
+		if word not in d_index:
+			new_word_count += 1
+	print(new_word_count)
+	print(data[0])
+	data = [v + new_word_count * [0] for v in data]
+	print(len(data[0]))
+
+	qvector = sent2vec(que) + new_word_count * [1]
+	print(len(qvector))
+	print(qvector)
+	data.append(qvector)
+	pickle.dump( data, open( "sentence_vectors.p", "wb" ) )
+
+	for key in word_set:
+		if key not in d_index:
+			d_index[key] = g_index
+			revDic[g_index] = key
+			g_index += 1
+	with open('ans.txt','a+') as f:
+		f.write(ans+"\n")
+	with open('database.txt','a+') as f:
+		f.write(que+"\n")
 
 def getAnswer(question):
+	# PREPROCESSING
+	loadQuestionVectors()
+	with open('ans.txt','r') as f:
+		answer_list = f.readlines()
+	answer_list = [ans.strip() for ans in answer_list]
+	#######################################
 	qvector = sent2vec(question)
 	answers = getAnswerIndex(qvector, data)
 	if len(answers) > 1:
@@ -300,5 +353,6 @@ def getAnswer(question):
 	else:
 		print("No suitable answer found")
 
-getAnswer(que)
-print("")
+getAnswer(que)	
+#addQuestion("Who is the director of IIT Roorkee", "A.K. Ghosh, (Previously in IIT Kanpur)")
+# print("")

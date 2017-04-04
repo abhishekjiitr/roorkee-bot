@@ -25,7 +25,7 @@ What if I fail to appear for my exams?
 What if I face disciplinary action?
 Do I have to pass all the courses that are assigned to me?
 What is educational tour?
-How can I change departmental elective after registration?
+How canteens I change departmental elective after registration?
 How can I change Institute elective after registration?
 I missed my mid term examination MTE paper, how can I apply for re-exam?
 I missed my end term examination ETE paper, how can I apply for re-exam?
@@ -172,3 +172,4 @@ How are the credits assigned to courses ?
 Is resume same for all the companies or can it be customized? 
 Is there a second round for placements too?
 What is the percentage increase in avg ctc per year in recent past in iitr?
+who is the director of iit roorkee
