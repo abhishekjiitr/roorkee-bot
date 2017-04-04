@@ -265,8 +265,8 @@ def getAnswerIndex(q, data):
 # print(answers)
 
 print("Ask your query:")
-que = "Who is the director of IIT Roorkee"
-# que = raw_input()
+# que = "Who is the director of IIT Roorkee"
+que = raw_input()
 
 data = []
 
@@ -298,18 +298,18 @@ def addQuestion(que, ans):
 	
 	new_word_count = 0
 	word_set = set(processQuestion(que))
-	print(word_set)
+	# print(word_set)
 	for word in word_set:
 		if word not in d_index:
 			new_word_count += 1
-	print(new_word_count)
-	print(data[0])
+	# print(new_word_count)
+	# print(data[0])
 	data = [v + new_word_count * [0] for v in data]
-	print(len(data[0]))
+	# print(len(data[0]))
 
 	qvector = sent2vec(que) + new_word_count * [1]
-	print(len(qvector))
-	print(qvector)
+	# print(len(qvector))
+	# print(qvector)
 	data.append(qvector)
 	pickle.dump( data, open( "sentence_vectors.p", "wb" ) )
 
@@ -351,8 +351,14 @@ def getAnswer(question):
 	elif len(answers) == 1:
 		print("Answer:\n" + answer_list[answers[0]])
 	else:
-		print("No suitable answer found")
-
+		print("No suitable answer found.")
+	print("")
+	print("If you are not satisfied with the answer, you can add this question.\nTo add this question, press y")
+	choice = raw_input().strip()
+	if choice in ['y', 'Y']:
+		ans = raw_input("Please input the corresponding answer:\n")
+		addQuestion(question, ans)
+		print("Database Updated")
 getAnswer(que)	
 #addQuestion("Who is the director of IIT Roorkee", "A.K. Ghosh, (Previously in IIT Kanpur)")
 # print("")

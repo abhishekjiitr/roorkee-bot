@@ -173,3 +173,5 @@ There is a master resume which is verified by TPO.  You can hide some of the stu
 Yes, there is a second round.
 Approx 25% increase from past 2 years
 A.K. Ghosh, (Previously in IIT Kanpur)
+Professor in CSE Department, IIT Roorke
+A new professor in CSE Department IIT Roorkee (Previously in IIT KGP), specializing in Computational Geometry.
