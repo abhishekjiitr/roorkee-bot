@@ -12,7 +12,7 @@ from nltk.stem import WordNetLemmatizer
 from FocusWords import *
 import numpy as np
 import pickle, os
-
+import re, webbrowser
 
 lemmatizer = WordNetLemmatizer()
 
@@ -323,6 +323,12 @@ def addQuestion(que, ans):
 	with open('database.txt','a+') as f:
 		f.write(que+"\n")
 
+def action(text):
+	print(text)
+	urls = re.findall(r'(https?://\S+)', text)
+	for url in urls:
+		webbrowser.open_new(url)
+
 def getAnswer(question):
 	# PREPROCESSING
 	loadQuestionVectors()
@@ -336,23 +342,20 @@ def getAnswer(question):
 		print("Possible Answers: \n")
 		ans_vectors = [(dot(sent2vec(answer_list[index]), qvector), index) for index in answers]
 		ans_vectors.sort( key = lambda x : x[0], reverse = True)
-
 		# print(ans_vectors)
 		final_answers = (map(lambda x : answer_list[ x[1] ], ans_vectors))
-		# for i in range(len(answers)):
-		# 	text = "Answer " + str(i+1) + ": "
-		# 	text += answer_list[answers[i]]+"\n"
-		# 	print(text)
-		# print(final_answers)
+
 		for i in range(len(final_answers)):
 			text = "Answer " + str(i+1) + ": "
 			text += final_answers[i]+"\n"
+			action(final_answers[i])
 			print(text)
 	elif len(answers) == 1:
+		action(answer_list[answers[0]])
 		print("Answer:\n" + answer_list[answers[0]])
 	else:
 		print("No suitable answer found.")
-	print("")
+	print("") 
 	print("If you are not satisfied with the answer, you can add this question.\nTo add this question, press y")
 	choice = raw_input().strip()
 	if choice in ['y', 'Y']:
