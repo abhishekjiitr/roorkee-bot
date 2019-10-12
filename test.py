@@ -5,7 +5,7 @@
 # addQuestion("q", "test")
 
 f=open('database.txt','r')
-test=f.readlines()
-test = [q.strip().replace('?', '') for q in test]
+testing=f.readlines()
+testing = [q.strip().replace('?', '') for q in test]
 
-print(test)
+print(testing)
