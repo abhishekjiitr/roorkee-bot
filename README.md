@@ -22,3 +22,6 @@ pip install pyenchant
 + nltk
 + sklearn
 + java (required for Stanford NLP)
+
+#OR
++ anaconda
